@@ -1,0 +1,166 @@
+# ==============================================================================
+# config_synthetic.yaml -- synthetic-market counterpart to config.yaml
+#
+# THIS FILE WAS MISSING FROM THE ORIGINAL UPLOAD.
+# run_advantage_diagnosis.py and run_ablation_lambda_tc0_real.py both default
+# to loading "config_synthetic.yaml" (see their own docstrings / --help), and
+# their module docstrings explicitly say they run against market_sim.py's
+# synthetic generator "so it runs without internet access" -- but no such
+# file existed anywhere in the project. Without it, both scripts would fail
+# immediately with FileNotFoundError on a fresh checkout, in an environment
+# with no internet access (the whole point of having a synthetic fallback).
+#
+# This file mirrors config.yaml's actor/critic/state/risk/costs/training/
+# benchmarks/evaluation blocks exactly (same architecture and hyperparameters
+# train.py and models.py expect), but swaps the `market` block for
+# market_sim.simulate_market()'s own knobs instead of data_loader.py's
+# ticker/date-range knobs. See market_sim.py's module docstring and
+# EXPOSURES table for what each market knob controls.
+#
+# Run with, e.g.:
+#   python3 train.py config_synthetic.yaml energy_rl_sim_results_synthetic
+#   python3 run_advantage_diagnosis.py config_synthetic.yaml advantage_diag_out
+#   python3 run_ablation_lambda_tc0_real.py config_synthetic.yaml ablation_real_out
+#   python3 run_seed_sweep.py config_synthetic.yaml --seeds 5 --out energy_rl_sim_results/sweep_results
+# ==============================================================================
+
+seed: 42
+
+# ------------------------------------------------------------------------
+# market: synthetic generator (market_sim.simulate_market). No internet
+# required. Day counts below reproduce the same train/stressed/calm split
+# used elsewhere in the project's reports (300/100/100 trading days), with
+# an 80-day transition buffer on each side so the labelled "stressed_test"
+# and "calm_test" segments capture the market actually BEING in that regime
+# rather than transitioning into/out of it (see market_sim.simulate_market's
+# docstring for why the buffer exists).
+# ------------------------------------------------------------------------
+market:
+  data_source: synthetic
+
+  n_train_days: 1500
+  n_stressed_test_days: 250
+  n_calm_test_days: 250
+  transition_buffer_days: 80
+
+  # gas price (OU process): calm vs. stressed level/vol, mean-reversion rate
+  gas_level_calm: 1.0
+  gas_level_stressed: 3.0
+  gas_vol_calm: 0.05
+  gas_vol_stressed: 0.15
+  gas_theta: 0.03
+
+  # supply-shock jumps (Poisson arrival, uniform size), far more frequent
+  # once the stressed regime is reached
+  jump_prob_calm: 0.01
+  jump_prob_stressed: 0.06
+  jump_size_min: 0.05
+  jump_size_max: 0.25
+  jump_beta_gas: 1.0
+  jump_beta_safe: 0.5
+
+  # per-asset exposure scaling of the shared macro factors onto returns
+  beta_gas_scale: 0.5
+  beta_carbon_scale: 0.3
+  beta_wind_scale: 0.2
+
+  # carbon price (OU process, plus gas/carbon co-movement in simulate_market)
+  carbon_level: 1.0
+  carbon_theta: 0.05
+  carbon_vol: 0.05
+
+  # wind capacity factor: seasonal + noise, with occasional "drought" episodes
+  wind_noise: 0.05
+  drought_prob_calm: 0.001
+  drought_prob_stressed: 0.01
+
+  # electricity proxy noise, idiosyncratic per-asset return noise
+  elec_noise: 0.10
+  idio_vol: 0.01
+
+# ------------------------------------------------------------------------
+# state: encoder architecture + preprocessing (identical to config.yaml)
+# ------------------------------------------------------------------------
+state:
+  lookback: 20
+  d_attn: 16
+  d_model: 32
+  d_graph: 16
+  use_gnn: true
+  # NOTE: this threshold is on the cosine-similarity-of-exposures scale
+  # market_sim.build_asset_graph() was designed for (its own default is
+  # 0.35) -- do NOT reuse config.yaml's 0.5, which is calibrated for
+  # data_loader.build_empirical_asset_graph()'s correlation scale instead.
+  graph_similarity_threshold: 0.35
+  normalise_window: 252
+
+# ------------------------------------------------------------------------
+# actor: Dirichlet policy + SAC-style temperature auto-tuning
+# (identical to config.yaml)
+# ------------------------------------------------------------------------
+actor:
+  actor_hidden: 32
+  alpha_floor: 1.0
+  w_max: 0.3
+  lr: 0.0003
+  baseline_ema: 0.01
+  beta_init: 0.05
+  beta_min: 0.01
+  beta_max: 5.0
+  beta_lr: 0.005
+  entropy_target_margin: 1.0
+
+# ------------------------------------------------------------------------
+# critic: distributional (quantile-regression) critic (identical to config.yaml)
+# ------------------------------------------------------------------------
+critic:
+  critic_hidden: 32
+  n_quantiles: 21
+  lr: 0.0003
+  gamma: 0.99
+  huber_kappa: 1.0
+  batch_size: 64
+  replay_capacity: 50000
+  target_tau: 0.005
+
+# ------------------------------------------------------------------------
+# risk: Expected-Shortfall penalty in the actor objective (identical to config.yaml)
+# ------------------------------------------------------------------------
+risk:
+  es_mode: critic
+  lambda_es: 0.6
+  es_alpha: 0.95
+  historical_es_window: 60
+
+# ------------------------------------------------------------------------
+# costs
+# ------------------------------------------------------------------------
+costs:
+  lambda_tc: 0.0015
+
+# ------------------------------------------------------------------------
+# training
+# ------------------------------------------------------------------------
+training:
+  n_episodes: 120
+  critic_warmup_updates: 200
+  log_every: 5
+  actor_update_every_steps: 100
+
+# ------------------------------------------------------------------------
+# benchmarks (Tier 1: naive/passive, Tier 2: classical convex optimisation)
+# 8 entries to match market_sim.py's 8 synthetic archetypes (ASSET_NAMES).
+# ------------------------------------------------------------------------
+benchmarks:
+  rebalance_every: 5
+  scenario_window: 60
+  cvar_alpha: 0.95
+  cvar_lambda_return: 1.0
+  static_cap_weights: [0.125, 0.125, 0.125, 0.125, 0.125, 0.125, 0.125, 0.125]
+
+# ------------------------------------------------------------------------
+# evaluation: bootstrap significance test
+# ------------------------------------------------------------------------
+evaluation:
+  bootstrap_block_size: 20
+  bootstrap_n_boot: 2000

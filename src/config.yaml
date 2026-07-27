@@ -1,0 +1,152 @@
+# ==============================================================================
+# config.yaml -- full run configuration for train.py / run_seed_sweep.py
+#
+# This file was reconstructed to cover every cfg[...] key the codebase reads
+# (train.py, models.py, market_sim.py, benchmarks.py, data_loader.py,
+# run_seed_sweep.py). Values under actor/critic/state/costs/risk/training
+# match what was visible in the last results_report.txt (seed 42, lookback
+# 20, use_gnn true, es_mode critic, lambda_es 0.6/ES95, lambda_tc 0.0015,
+# w_max 0.3, alpha_floor 1.0, n_quantiles 21, critic_warmup_updates 200,
+# entropy_target_margin 1.0, beta bounds 0.01/5.0, 120 episodes). Anything
+# not previously visible (learning rates, batch size, gamma, etc.) uses a
+# standard, reasonable starting value -- per the project's own "Honest
+# simplifications" note, these are illustrative, not tuned; treat them as a
+# starting point to calibrate against real out-of-sample performance.
+# ==============================================================================
+
+seed: 42
+
+# ------------------------------------------------------------------------
+# market: data source. "real" downloads real OHLCV data via data_loader.py
+# (requires `pip install yfinance` and normal internet access -- this will
+# NOT work inside a network-sandboxed environment). Set to "synthetic" to
+# fall back to market_sim.py's synthetic generator instead (in which case
+# this block additionally needs market_sim.py's own knobs -- n_train_days,
+# gas_level_calm, jump_prob_stressed, etc. -- see market_sim.simulate_market).
+# ------------------------------------------------------------------------
+market:
+  data_source: real
+
+  tickers:
+    - SHEL        # Shell plc          - UK
+    - BP          # BP plc             - UK
+    - TTE         # TotalEnergies SE   - France
+    - ENEL.MI     # Enel S.p.A.        - Italy
+    - IBE.MC      # Iberdrola S.A.     - Spain
+    - RWE.DE      # RWE AG             - Germany
+    - EOAN.DE     # E.ON SE            - Germany
+    - EQNR        # Equinor ASA        - Norway (NYSE ADR)
+    - ORSTED.CO   # Orsted A/S         - Denmark
+    - REP.MC      # Repsol S.A.        - Spain
+
+  train_start: "2011-01-01"
+  train_end:   "2022-12-31"   # includes the real 2021-2022 European energy crisis
+  test1_start: "2023-01-01"   # -> regime label "stressed_test" (see data_loader.py note)
+  test1_end:   "2024-06-30"
+  test2_start: "2024-07-01"   # -> regime label "calm_test"
+  test2_end:   "2025-12-31"
+
+  feature_vol_window: 20      # rolling window (days) for the realised-vol feature channel
+  cache_dir: ".yf_cache"      # on-disk cache so repeated runs/seeds don't re-hit the network
+
+# ------------------------------------------------------------------------
+# state: encoder architecture + preprocessing
+# ------------------------------------------------------------------------
+state:
+  lookback: 20                       # L: attention pooling window, in trading days
+  d_attn: 16                         # attention key/query dim
+  d_model: 32                        # attention output (temporal embedding) dim
+  d_graph: 16                        # GNN output dim
+  use_gnn: true                      # false -> identity adjacency (ablation H3)
+  graph_similarity_threshold: 0.5    # correlation threshold for the empirical
+                                      # asset graph (data_loader.build_empirical_asset_graph);
+                                      # NOTE: this is on a correlation scale, not the
+                                      # cosine-similarity-of-exposures scale market_sim.py's
+                                      # own default (0.35) was tuned for -- re-check against
+                                      # your actual train-period correlation matrix.
+  normalise_window: 252              # rolling z-score window (trading days) for features
+
+# ------------------------------------------------------------------------
+# actor: Dirichlet policy + SAC-style temperature auto-tuning
+# ------------------------------------------------------------------------
+actor:
+  actor_hidden: 32
+  alpha_floor: 1.0
+  w_max: 0.3
+  lr: 0.0003
+  baseline_ema: 0.01
+  beta_init: 0.05
+  beta_min: 0.01
+  beta_max: 5.0
+  # was 0.001: at that rate beta only moved 0.050->0.046 in 120 episodes and
+  # never got close to beta_min (0.01), so the entropy bonus stayed active
+  # far longer than the entropy-control loop intended. Raised 5x so beta can
+  # actually reach its floor within a normal run once entropy is above target.
+  beta_lr: 0.005
+  entropy_target_margin: 1.0    # target = H_max - margin, H_max = H(Dir(1,...,1))
+
+# ------------------------------------------------------------------------
+# critic: distributional (quantile-regression) critic
+# ------------------------------------------------------------------------
+critic:
+  critic_hidden: 32
+  n_quantiles: 21
+  lr: 0.0003
+  gamma: 0.99
+  huber_kappa: 1.0
+  batch_size: 64
+  replay_capacity: 50000
+  target_tau: 0.005              # Polyak averaging rate for the target critic
+
+# ------------------------------------------------------------------------
+# risk: Expected-Shortfall penalty in the actor objective
+# ------------------------------------------------------------------------
+risk:
+  es_mode: critic                # "critic" (critic-derived ES) or "historical" (ablation H4)
+  lambda_es: 0.6
+  es_alpha: 0.95
+  historical_es_window: 60       # only used when es_mode: historical
+
+# ------------------------------------------------------------------------
+# costs
+# ------------------------------------------------------------------------
+costs:
+  lambda_tc: 0.0015              # L1 turnover cost coefficient
+
+# ------------------------------------------------------------------------
+# training
+# ------------------------------------------------------------------------
+training:
+  n_episodes: 120
+  critic_warmup_updates: 200     # critic TD updates required before the actor starts learning
+  log_every: 5
+  # FIX: previously the actor took exactly ONE gradient step per episode
+  # (after the whole ~1500+ step rollout), so 120 episodes meant only 120
+  # actor updates total -- vs. thousands of critic TD updates in the same
+  # run. That mismatch, not the entropy bonus, is the main reason the actor
+  # gradient norm was still declining (not converged) at the last episode.
+  # actor_update_every_steps makes the actor update every K environment
+  # steps instead of once per episode, using the same data but far more
+  # gradient steps. Set to null (or delete this key) to restore the old
+  # once-per-episode behaviour.
+  actor_update_every_steps: 100
+
+# ------------------------------------------------------------------------
+# benchmarks (Tier 1: naive/passive, Tier 2: classical convex optimisation)
+# ------------------------------------------------------------------------
+benchmarks:
+  rebalance_every: 5             # trading days between benchmark rebalances
+  scenario_window: 60            # trailing scenario window (days) for CVaR-LP / RiskParity
+  cvar_alpha: 0.95
+  cvar_lambda_return: 1.0
+  # Equal weights by default (no real market-cap data wired in here) -- 10
+  # entries to match the 10-ticker universe above; replace with actual
+  # market-cap-proportional weights if you have them.
+  static_cap_weights: [0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1]
+
+# ------------------------------------------------------------------------
+# evaluation: bootstrap significance test
+# ------------------------------------------------------------------------
+evaluation:
+  bootstrap_block_size: 20
+  bootstrap_n_boot: 2000
