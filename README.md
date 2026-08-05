@@ -6,43 +6,7 @@ distributional, Expected-Shortfall-aware critic on a European energy-sector
 asset universe, and benchmarks it against classical passive and convex-optimisation
 strategies. It can run on **real Yahoo Finance data** or on a **synthetic,
 physically-motivated market simulator** that needs no internet access.
-
-## TL;DR — what I did
-
-I read every file, then actually **ran** the full pipeline (gradient checks,
-a full `train.py` run, `run_seed_sweep.py`, `run_ablation_lambda_tc0_real.py`,
-`run_advantage_diagnosis.py`, and `compare_ablation.py`, in every combination
-of `use_gnn`/`es_mode`/`actor_update_every_steps`) rather than just reading the
-code, so I could catch things a pure read-through would miss.
-
-**Result: the code you uploaded is already correct and runs end-to-end without
-errors.** All three gradient-check scripts pass (`gradcheck.py`,
-`gradcheck_encoders.py`, `gradcheck_models.py`), and every orchestration script
-completes and produces sane output on the synthetic market. This project has
-clearly already been through several real debugging passes — the source is full
-of dated `BUG FIX:` / `VALIDATION:` comments explaining exactly what was wrong
-and why the current code is right (e.g. the market-crash-term sign flip in
-`market_sim.py`, the look-ahead leak in `causal_rolling_normalise`, the
-once-per-episode actor-update bottleneck in `train.py`, the advantage-baseline
-double-counting in `actor_update`). I checked each of those fixes against the
-math and they are all correct.
-
-**The one genuine bug I found and fixed:** `config_synthetic.yaml` didn't
-exist anywhere in the project, even though `run_advantage_diagnosis.py` and
-`run_ablation_lambda_tc0_real.py` both hard-code it as their default config
-path, and their own docstrings tell you to run them exactly that way "so it
-runs without internet access." On a fresh checkout, both commands would fail
-immediately with `FileNotFoundError` — the one code path meant to work without
-network access couldn't be invoked at all. I've added `config_synthetic.yaml`
-(mirrors `config.yaml`'s actor/critic/state/risk/training hyperparameters,
-with `market_sim.py`'s own synthetic-market knobs in place of the real-ticker
-date ranges) and verified it against `train.py`, `run_advantage_diagnosis.py`,
-and `run_ablation_lambda_tc0_real.py` directly.
-
-Everything else in this delivery is **byte-for-byte what you uploaded** —
-nothing was changed, because nothing needed to be.
-
----
+ 
 
 ## What's in this folder
 
