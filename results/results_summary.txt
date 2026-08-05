@@ -1,0 +1,161 @@
+============================================================
+  DISTRIBUTIONAL-SAC / DIRICHLET PORTFOLIO MANAGEMENT -- FULL RESULTS SUMMARY
+  Generated: 2026-07-28 15:58:35
+============================================================
+
+[ TEST PERIOD 1 (real market data, 358 trading days) -- INDIVIDUAL RESULTS ]
+
+============================================================
+  Strategy     : RL-Dirichlet-DistCritic
+  Annual Return: 0.0887  (8.87%)
+  Total Return : 0.1168  (11.68%)
+  Sharpe Ratio : 0.6072
+  Max Drawdown : 0.0939  (9.39%)
+  Daily Ret Std: 0.9199%
+  Daily Ret Min: -3.7306%
+  Daily Ret Max: 2.4777%
+============================================================
+============================================================
+  Strategy     : 1/N
+  Annual Return: 0.0888  (8.88%)
+  Total Return : 0.1170  (11.70%)
+  Sharpe Ratio : 0.6082
+  Max Drawdown : 0.0940  (9.40%)
+  Daily Ret Std: 0.9195%
+  Daily Ret Min: -3.7281%
+  Daily Ret Max: 2.4781%
+============================================================
+============================================================
+  Strategy     : CapWeighted
+  Annual Return: 0.0888  (8.88%)
+  Total Return : 0.1170  (11.70%)
+  Sharpe Ratio : 0.6082
+  Max Drawdown : 0.0940  (9.40%)
+  Daily Ret Std: 0.9195%
+  Daily Ret Min: -3.7281%
+  Daily Ret Max: 2.4781%
+============================================================
+============================================================
+  Strategy     : CVaR-LP
+  Annual Return: 0.0502  (5.02%)
+  Total Return : 0.0606  (6.06%)
+  Sharpe Ratio : 0.3806
+  Max Drawdown : 0.0996  (9.96%)
+  Daily Ret Std: 0.8317%
+  Daily Ret Min: -3.3181%
+  Daily Ret Max: 2.9759%
+============================================================
+============================================================
+  Strategy     : RiskParity
+  Annual Return: 0.0858  (8.58%)
+  Total Return : 0.1155  (11.55%)
+  Sharpe Ratio : 0.6521
+  Max Drawdown : 0.1002  (10.02%)
+  Daily Ret Std: 0.8288%
+  Daily Ret Min: -3.1520%
+  Daily Ret Max: 2.0775%
+============================================================
+
+[ TEST PERIOD 1 (real market data, 358 trading days) -- COMPARISON TABLE ]
+
+Strategy                   Annual Ret   Total Ret    Sharpe         MDD    DailyStd
+-----------------------------------------------------------------------------------
+RL-Dirichlet-DistCritic         8.87%      11.68%    0.6072      0.0939     0.9199%
+1/N                             8.88%      11.70%    0.6082      0.0940     0.9195%
+CapWeighted                     8.88%      11.70%    0.6082      0.0940     0.9195%
+CVaR-LP                         5.02%       6.06%    0.3806      0.0996     0.8317%
+RiskParity                      8.58%      11.55%    0.6521      0.1002     0.8288%
+-----------------------------------------------------------------------------------
+
+[ TEST PERIOD 2 (real market data, 363 trading days) -- INDIVIDUAL RESULTS ]
+
+============================================================
+  Strategy     : RL-Dirichlet-DistCritic
+  Annual Return: 0.0952  (9.52%)
+  Total Return : 0.1271  (12.71%)
+  Sharpe Ratio : 0.6204
+  Max Drawdown : 0.1274  (12.74%)
+  Daily Ret Std: 0.9664%
+  Daily Ret Min: -6.4260%
+  Daily Ret Max: 2.9647%
+============================================================
+============================================================
+  Strategy     : 1/N
+  Annual Return: 0.0951  (9.51%)
+  Total Return : 0.1270  (12.70%)
+  Sharpe Ratio : 0.6202
+  Max Drawdown : 0.1273  (12.73%)
+  Daily Ret Std: 0.9660%
+  Daily Ret Min: -6.4246%
+  Daily Ret Max: 2.9630%
+============================================================
+============================================================
+  Strategy     : CapWeighted
+  Annual Return: 0.0951  (9.51%)
+  Total Return : 0.1270  (12.70%)
+  Sharpe Ratio : 0.6202
+  Max Drawdown : 0.1273  (12.73%)
+  Daily Ret Std: 0.9660%
+  Daily Ret Min: -6.4246%
+  Daily Ret Max: 2.9630%
+============================================================
+============================================================
+  Strategy     : CVaR-LP
+  Annual Return: 0.1290  (12.90%)
+  Total Return : 0.1864  (18.64%)
+  Sharpe Ratio : 0.9123
+  Max Drawdown : 0.1312  (13.12%)
+  Daily Ret Std: 0.8910%
+  Daily Ret Min: -5.2533%
+  Daily Ret Max: 2.5984%
+============================================================
+============================================================
+  Strategy     : RiskParity
+  Annual Return: 0.1335  (13.35%)
+  Total Return : 0.1946  (19.46%)
+  Sharpe Ratio : 0.9628
+  Max Drawdown : 0.1235  (12.35%)
+  Daily Ret Std: 0.8734%
+  Daily Ret Min: -6.1061%
+  Daily Ret Max: 2.7508%
+============================================================
+
+[ TEST PERIOD 2 (real market data, 363 trading days) -- COMPARISON TABLE ]
+
+Strategy                   Annual Ret   Total Ret    Sharpe         MDD    DailyStd
+-----------------------------------------------------------------------------------
+RL-Dirichlet-DistCritic         9.52%      12.71%    0.6204      0.1274     0.9664%
+1/N                             9.51%      12.70%    0.6202      0.1273     0.9660%
+CapWeighted                     9.51%      12.70%    0.6202      0.1273     0.9660%
+CVaR-LP                        12.90%      18.64%    0.9123      0.1312     0.8910%
+RiskParity                     13.35%      19.46%    0.9628      0.1235     0.8734%
+-----------------------------------------------------------------------------------
+
+[ TRAINING HISTORY SUMMARY ]
+
+  Actor (Dirichlet policy)
+    Episodes trained    : 120   (0 withheld for critic warmup)
+    Reward  - mean      : -0.000663
+    Reward  - std       : 0.000096
+    Reward  - min/max   : -0.000862 / -0.000411
+    Ep Ret (%)          : mean=131.61%  std=33.38%
+    Ep Ret min/max      : 47.43% / 221.13%
+    Final beta          : 0.0100   (SAC temperature -- this project's analogue of an epsilon-greedy rate: it is
+                          auto-tuned toward a target entropy rather than manually decayed)
+    GradNorm (pre-clip) : mean=0.0097  final10=0.0060
+    Objective - mean    : 0.000436   (E[Z]-lambda_ES*ES + entropy bonus; the actor has no classical 'loss',
+    Objective - final10 : -0.007392   since it is trained to maximise this objective, not minimise a loss)
+    Entropy frac - mean : 0.052  final10=0.020   (share of the actor gradient coming from the entropy bonus
+                          rather than the return/ES advantage; 1.0 = entropy-dominated, 0.0 = return/ES-dominated)
+
+  Critic (distributional, quantile regression)
+    Episodes trained    : 120
+    GradNorm (pre-clip) : mean=0.0015  final10=0.0010
+    Loss - mean         : 0.000222
+    Loss - final10      : 0.000053
+    Quantile spread - mean    : 0.065512   (calibration diagnostic -- should stabilise, not vanish)
+    Quantile spread - final10: 0.047492
+
+============================================================
+  END OF REPORT
+============================================================

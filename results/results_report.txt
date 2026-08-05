@@ -1,0 +1,118 @@
+==============================================================================
+EUROPEAN ENERGY PORTFOLIO RL -- SIMULATION RESULTS REPORT
+==============================================================================
+
+1. RUN CONFIGURATION
+------------------------------------------------------------------------------
+  seed                        : 42
+  data source                 : real
+  asset universe (10)           : SHEL, BP, TTE, ENEL.MI, IBE.MC, RWE.DE, EOAN.DE, EQNR, ORSTED.CO, REP.MC
+  train / stressed / calm days: 1590 / 358 / 363
+  episodes                    : 120
+  lookback window (L)         : 20
+  use_gnn                     : True
+  es_mode                     : critic
+  lambda_ES / ES confidence   : 0.6 / 0.95
+  lambda_TC (transaction cost): 0.0015
+  position cap (w_max)        : 0.3
+  alpha_floor                 : 1.0
+  n_quantiles (critic)        : 21
+  critic_warmup_updates       : 200 (critic TD updates required before the actor starts learning)
+  entropy_target_margin       : 1.0 (target = H_max - margin, H_max = H(Dir(1,...,1)))
+  beta bounds (min/max)       : 0.01 / 5.0
+
+2. PERFORMANCE SUMMARY (both test segments, all strategies)
+------------------------------------------------------------------------------
+                                       ann_return  ann_vol  sharpe  sortino  calmar  max_drawdown  ulcer_index  VaR95_daily  ES95_daily  ES99_daily  omega_ratio    skew  excess_kurtosis  hit_rate  best_day  worst_day  avg_turnover  annual_turnover  avg_HHI  avg_n_effective_assets  max_single_weight  cum_return  n_days
+segment       strategy                                                                                                                                                                                                                                                                                                         
+stressed_test RL-Dirichlet-DistCritic      0.0887   0.1460  0.6072   0.8475  0.9440       -0.0939       3.4510      -0.0156     -0.0218     -0.0316       1.1065 -0.4290           1.1867    0.5154    0.0248    -0.0373        0.0003           0.0689   0.1000                  9.9998             0.1016      0.1168     357
+              1/N                          0.0888   0.1460  0.6082   0.8488  0.9443       -0.0940       3.4508      -0.0156     -0.0218     -0.0316       1.1067 -0.4298           1.1894    0.5154    0.0248    -0.0373        0.0000           0.0000   0.1000                 10.0000             0.1000      0.1170     357
+              CapWeighted                  0.0888   0.1460  0.6082   0.8488  0.9443       -0.0940       3.4508      -0.0156     -0.0218     -0.0316       1.1067 -0.4298           1.1894    0.5154    0.0248    -0.0373        0.0000           0.0000   0.1000                 10.0000             0.1000      0.1170     357
+              BuyAndHold                   0.0888   0.1460  0.6082   0.8488  0.9443       -0.0940       3.4508      -0.0156     -0.0218     -0.0316       1.1067 -0.4298           1.1894    0.5154    0.0248    -0.0373        0.0000           0.0000   0.1000                 10.0000             0.1000      0.1170     357
+              CVaR-LP                      0.0502   0.1320  0.3806   0.5650  0.5046       -0.0996       4.3181      -0.0137     -0.0191     -0.0266       1.0637 -0.2632           1.0268    0.5210    0.0298    -0.0332        0.0706          17.7970   0.2497                  4.0222             0.3000      0.0606     357
+              RiskParity                   0.0858   0.1316  0.6521   0.9229  0.8564       -0.1002       3.4716      -0.0145     -0.0194     -0.0276       1.1134 -0.4198           1.0282    0.5210    0.0208    -0.0315        0.0108           2.7206   0.1122                  8.9407             0.2367      0.1155     357
+calm_test     RL-Dirichlet-DistCritic      0.0952   0.1534  0.6204   0.7089  0.7468       -0.1274       4.9987      -0.0152     -0.0246     -0.0450       1.1133 -1.5209           6.9843    0.5635    0.0296    -0.0643        0.0009           0.2317   0.1000                  9.9987             0.1128      0.1271     362
+              1/N                          0.0951   0.1534  0.6202   0.7077  0.7472       -0.1273       4.9918      -0.0152     -0.0246     -0.0450       1.1134 -1.5224           6.9917    0.5663    0.0296    -0.0642        0.0000           0.0000   0.1000                 10.0000             0.1000      0.1270     362
+              CapWeighted                  0.0951   0.1534  0.6202   0.7077  0.7472       -0.1273       4.9918      -0.0152     -0.0246     -0.0450       1.1134 -1.5224           6.9917    0.5663    0.0296    -0.0642        0.0000           0.0000   0.1000                 10.0000             0.1000      0.1270     362
+              BuyAndHold                   0.0951   0.1534  0.6202   0.7077  0.7472       -0.1273       4.9918      -0.0152     -0.0246     -0.0450       1.1134 -1.5224           6.9917    0.5663    0.0296    -0.0642        0.0000           0.0000   0.1000                 10.0000             0.1000      0.1270     362
+              CVaR-LP                      0.1290   0.1414  0.9123   1.0367  0.9833       -0.1312       4.5419      -0.0133     -0.0222     -0.0425       1.1743 -1.4126           6.5468    0.5746    0.0260    -0.0525        0.0643          16.2117   0.2343                  4.3341             0.3000      0.1864     362
+              RiskParity                   0.1335   0.1387  0.9628   1.1165  1.0814       -0.1235       4.3795      -0.0122     -0.0207     -0.0421       1.1811 -1.5616           8.5202    0.5718    0.0275    -0.0611        0.0111           2.7852   0.1108                  9.0508             0.2086      0.1946     362
+
+3. RELATIVE PERFORMANCE VS. 1/N (tracking error, ann. excess return, Information Ratio)
+------------------------------------------------------------------------------
+                                       tracking_error  ann_excess_return  information_ratio
+segment       strategy                                                                     
+stressed_test RL-Dirichlet-DistCritic          0.0003            -0.0001            -0.4111
+              CapWeighted                      0.0000             0.0000             0.0000
+              CVaR-LP                          0.0810            -0.0385            -0.4754
+              RiskParity                       0.0352            -0.0030            -0.0849
+calm_test     RL-Dirichlet-DistCritic          0.0009             0.0001             0.0643
+              CapWeighted                      0.0000             0.0000             0.0000
+              CVaR-LP                          0.0886             0.0339             0.3829
+              RiskParity                       0.0388             0.0384             0.9893
+
+4. BOOTSTRAP SIGNIFICANCE TEST (stressed_test segment, RL vs. each benchmark)
+------------------------------------------------------------------------------
+   H0: RL's Sharpe ratio does not exceed the benchmark's. p_value_RL_better is the
+   fraction of stationary block-bootstrap resamples in which the RL-vs-benchmark
+   Sharpe gap is at least as large as observed once centred on zero -- a low value
+   is evidence the observed gap is unlikely to be pure sampling noise.
+  benchmark  sharpe_diff  p_value_RL_better
+        1/N      -0.0011             0.7880
+CapWeighted      -0.0011             0.7880
+ BuyAndHold      -0.0011             0.7880
+    CVaR-LP       0.2266             0.2625
+ RiskParity      -0.0449             0.6145
+
+5. ACTOR TRAINING SUMMARY
+------------------------------------------------------------------------------
+   critic warmup                 : none needed (warmup target already met by episode 0)
+   entropy target                : -13.802
+   entropy, first episode -> last   : -13.534 -> -12.830
+   SAC temperature beta, first -> last : 0.0496 -> 0.0100
+   avg sum(alpha), first -> last  : 17.075 -> 10.595
+   avg max single weight, first -> last : 0.239 -> 0.261
+   actor gradient norm, first -> last   : 0.11020 -> 0.00670
+   avg actor objective (E[Z]-lambda_ES*ES), first -> last : 0.18106 -> -0.00698
+   entropy term's share of actor gradient, first -> last : 0.124 -> 0.021
+   (entropy_frac = ||beta*dH|| / (||beta*dH|| + ||advantage*dlogp||) per step, averaged
+   over the episode -- close to 1.0 means the entropy bonus is dominating the update and
+   the return/ES signal is being drowned out; close to 0.0 means entropy has negligible
+   influence and the policy is being driven almost entirely by the return/ES objective.)
+   NOTE: entropy had not yet reached its target by the final episode.
+   Entropy is ABOVE target and beta is pinned at beta_min: the entropy-control
+   loop has done everything it can (weakened the entropy bonus as far as
+   allowed) and entropy is *still* rising -- this means the return/ES advantage
+   term itself is what's pushing the policy toward higher entropy (more diffuse
+   weights), not the entropy bonus. Check entropy_frac (section above): if it's
+   small (as here) while entropy keeps drifting away from target, lowering
+   beta_min further will not help -- the policy is being driven there by the
+   return/ES signal itself.
+
+6. CRITIC TRAINING SUMMARY
+------------------------------------------------------------------------------
+   quantile-Huber loss, first -> last   : 0.01226 -> 0.00005
+   critic gradient norm, first -> last  : 0.01329 -> 0.00106
+   avg predicted quantile spread, first -> last : 0.73637 -> 0.04727
+   (the quantile spread is a calibration diagnostic: it should stabilise at a
+   value reflecting genuine day-to-day return uncertainty, not collapse to ~0,
+   which would indicate the critic has stopped representing tail risk at all.)
+
+7. FILES IN THIS REPORT
+------------------------------------------------------------------------------
+   metrics_table.csv                 -- full performance metrics, both segments
+   relative_performance_vs_1N.csv     -- tracking error / Information Ratio vs 1/N
+   significance_stressed_test.csv     -- bootstrap Sharpe-difference test
+   training_history.csv               -- every per-episode diagnostic tracked during training
+   equity_curves.png                  -- cumulative return, RL vs benchmarks, both segments
+   training_diagnostics.png           -- quick overview: reward/entropy/beta/critic loss
+   actor_training_diagnostics.png     -- detailed actor diagnostics (6 panels)
+   critic_training_diagnostics.png    -- detailed critic diagnostics (3 panels)
+   rl_weights_stressed_test.png       -- RL policy weights over time, stressed segment
+   rl_weights_calm_test.png           -- RL policy weights over time, calm segment
+
+==============================================================================
+Reminder: hyperparameters here are illustrative, not tuned (see README.md,
+'Honest simplifications'). Treat magnitudes as a demonstration that every
+mechanism runs correctly end-to-end, not as a calibrated empirical result.
+==============================================================================
